@@ -1,21 +1,48 @@
+import datetime
 from flask import Flask, render_template, url_for, flash, redirect
-from forms import RegistationForm, LoginForm
+from flask_sqlalchemy import SQLAlchemy
+from forms import RegistrationForm, LoginForm
 
 app = Flask(__name__)
-
 app.config['SECRET_KEY'] = '8be8ee977461bc714355f66f4be67f81'
+app.config['SQLALCHEMY_DATABASE_URI'] = "sqlite:///site.db"
+db = SQLAlchemy(app)
+
+
+class User(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(20), unique=True, nullable=False)
+    email = db.Column(db.String(120), unique=True, nullable=False)
+    image_file = db.Column(db.String(20), nullable=False, default='default.jpg')
+    password = db.Column(db.String(60), nullable=False)
+
+    def __repr__(self):
+        return "User {}, Email: {}, Image: {}".format(self.username, self.email, self.image_file)
+
+
+class Post(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    title = db.Column(db.String(120), nullable=False)
+    date_posted = db.Column(db.DateTime, nullable=False, default=datetime.date.today())
+    content = db.Column(db.Text, nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
+
+    def __repr__(self):
+        return "Post title: {}, Date: {}".format(self.title, self.date_posted)
+
+
 allposts = [
     {
         'author': "Sadhin",
         'title': "Blog post 1",
         'content': "First post content",
-        'date_posted': "April 20 2023"
+        'date_posted': "April 20, 2023"
     },
     {
         'author': "Jone Doe",
         'title': "Blog post 2",
         'content': "Second post content",
-        'date_posted': "May 10 2023"
+        'date_posted': "May 10, 2023"
     }
 ]
 
@@ -32,7 +59,7 @@ def about():
 
 @app.route("/register", methods=['GET', 'POST'])
 def register():
-    form = RegistationForm()
+    form = RegistrationForm()
     if form.validate_on_submit():
         flash('Account created for {}!'.format(form.username.data), "success")
         return redirect(url_for('home'))
@@ -44,12 +71,12 @@ def register():
 def login():
     form = LoginForm()
     if form.email.data == "me@mail.com" and form.password.data == "password":
-        flash("You have been login!", "success")
+        flash("You have been logged in!", "success")
         return redirect(url_for('home'))
     else:
-        flash("Login Unsuccessful! Check 👁️ email and password", 'danger')
+        flash("Login Unsuccessful! Check email and password", 'danger')
 
-    return render_template("login.html", title="Loin", form=form)
+    return render_template("login.html", title="Login", form=form)
 
 
 if __name__ == '__main__':
