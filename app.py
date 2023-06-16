@@ -1,5 +1,5 @@
-from flask import Flask, render_template, url_for
-from froms import RegistationForm, LoginForm
+from flask import Flask, render_template, url_for, flash, redirect
+from forms import RegistationForm, LoginForm
 
 app = Flask(__name__)
 
@@ -30,15 +30,20 @@ def about():
     return render_template("about.html", title="About")
 
 
-@app.route("/register")
+@app.route("/register", methods=['GET', 'POST'])
 def register():
     form = RegistationForm()
+    if form.validate_on_submit():
+        flash('Account created for {}!'.format(form.username.data), "success")
+        return redirect(url_for('home'))
+
     return render_template('register.html', title='Register', form=form)
 
 
-@app.route("/login")
+@app.route("/login", methods=['Get', 'Post'])
 def login():
     form = LoginForm()
+
     return render_template("login.html", title="Loin", form=form)
 
 
