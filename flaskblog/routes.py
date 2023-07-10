@@ -79,6 +79,11 @@ def logout():
     return redirect(url_for('home'))
 
 
+def delete_previous_img(img_path):
+    if 'default.jpg' not in img_path:
+        os.remove(os.path.join(app.root_path, "static/profile_pics",img_path))
+
+
 def save_picture(form_picture):
     random_hex = secrets.token_hex(8)
     f_name, f_ext = os.path.splitext(form_picture.filename)
@@ -100,6 +105,7 @@ def account():
     if form.validate_on_submit():
         if form.picture.data:
             picture_file = save_picture(form.picture.data)
+            delete_previous_img(current_user.image_file)
             current_user.image_file = picture_file
         current_user.username = form.username.data
         current_user.email = form.email.data
