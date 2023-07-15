@@ -3,30 +3,16 @@ import secrets
 from PIL import Image
 from flask import render_template, url_for, flash, redirect, request
 from flaskblog import app, db, bcrypt
-from flaskblog.forms import RegistrationForm, LoginForm, UpdateAccountForm
+from flaskblog.forms import RegistrationForm, LoginForm, UpdateAccountForm, PostForm
 from flaskblog.models import User, Post
 from flask_login import login_user, current_user, logout_user, login_required
-
-allposts = [
-    {
-        'author': "Sadhin",
-        'title': "Blog post 1",
-        'content': "First post content",
-        'date_posted': "April 20, 2023"
-    },
-    {
-        'author': "Jone Doe",
-        'title': "Blog post 2",
-        'content': "Second post content",
-        'date_posted': "May 10, 2023"
-    }
-]
 
 
 @app.route("/")
 @app.route("/home")
 def home():
-    return render_template("home.html", posts=allposts)
+    posts = Post.query.all()
+    return render_template("home.html", posts=posts)
 
 
 @app.route("/about")
@@ -81,7 +67,7 @@ def logout():
 
 def delete_previous_img(img_path):
     if 'default.jpg' not in img_path:
-        os.remove(os.path.join(app.root_path, "static/profile_pics",img_path))
+        os.remove(os.path.join(app.root_path, "static/profile_pics", img_path))
 
 
 def save_picture(form_picture):
@@ -118,3 +104,18 @@ def account():
         form.email.data = current_user.email
     image_file = url_for('static', filename="profile_pics/" + current_user.image_file)
     return render_template("account.html", title="Account", image_file=image_file, form=form)
+
+
+@app.route("/post/new", methods=["GET", "POST"])
+@login_required
+def new_post():
+    form = PostForm()
+    if form.validate_on_submit():
+        post = Post(title=form.title.data, content=form.content.data, author=current_user)
+        db.session.add(post)
+        db.session.commit()
+        flash("Your post has been created!", "success")
+        return redirect(url_for("home"))
+    else:
+        flash("Something went wrong", "danger")
+    return render_template("create_post.html", title="New Post", form=form)
