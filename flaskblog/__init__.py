@@ -12,7 +12,7 @@ app.config['SQLALCHEMY_DATABASE_URI'] = "sqlite:///site.db"
 db = SQLAlchemy(app)
 bcrypt = Bcrypt(app)
 login_manager = LoginManager(app)
-login_manager.login_view = 'login'  # similar to url_for() function. Associated with login_required decorator
+login_manager.login_view = 'users.login'  # similar to url_for() function. Associated with login_required decorator
 login_manager.login_message_category = 'info'
 app.config['MAIL_SERVER'] = "smtp.googlemail.com"
 app.config['MAIL_PORT'] = 587
@@ -23,9 +23,15 @@ app.config['MAIL_USERNAME'] = "devdummay150@gmail.com"
 app.config['MAIL_PASSWORD'] = "1qaz1qaz!Q"
 mail = Mail(app)
 
+# from flaskblog import routes
+from flaskblog.users.routes import users
+from flaskblog.posts.routes import posts
+from flaskblog.main.routes import main
 
+app.register_blueprint(users)
+app.register_blueprint(posts)
+app.register_blueprint(main)
 
-from flaskblog import routes
 
 # 🚩have to follow this for running the DB related stuff🚩
 # >>> from flaskblog import app, db

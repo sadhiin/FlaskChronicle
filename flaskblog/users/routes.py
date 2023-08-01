@@ -4,9 +4,7 @@ from flaskblog import db, bcrypt
 from flaskblog.models import User, Post
 
 from flaskblog.users.forms import RegistrationForm, LoginForm, UpdateAccountForm, RequestResetForm, ResetPasswordForm
-from flaskblog.users.utils import save_picture, send_reset_email, delete_previous_img
-
-# from flaskblog.users.
+from flaskblog.users.utilitis import save_picture, delete_previous_img, send_reset_email
 
 users = Blueprint("users", __name__)
 
@@ -14,8 +12,8 @@ users = Blueprint("users", __name__)
 @users.route("/register", methods=['GET', 'POST'])
 def register():
     if current_user.is_authenticated:
-        flash("You already logedin", 'warning')
-        return redirect(url_for('home'))
+        flash("You already logged-in", 'warning')
+        return redirect(url_for('main.home'))
 
     form = RegistrationForm()
 
@@ -25,7 +23,7 @@ def register():
         db.session.add(user)
         db.session.commit()
         flash('Your account has been created! You can login'.format(form.username.data), "success")
-        return redirect(url_for('login'))
+        return redirect(url_for('users.login'))
 
     return render_template('register.html', title='Register', form=form)
 
@@ -34,7 +32,7 @@ def register():
 def login():
     if current_user.is_authenticated:
         flash("You already logedin", 'warning')
-        return redirect(url_for('home'))
+        return redirect(url_for('main.home'))
     form = LoginForm()
     if request.method == 'POST':
         if form.validate_on_submit():
@@ -43,7 +41,7 @@ def login():
                 login_user(user, remember=form.remember.data)
                 next_page = request.args.get('next')
                 # print(next_page)
-                return redirect(url_for(next_page[1:])) if next_page else redirect(url_for('home'))
+                return redirect(url_for(next_page[1:])) if next_page else redirect(url_for('main.home'))
             else:
                 flash("Login Unsuccessful! Check email and password", 'danger')
 
@@ -53,7 +51,7 @@ def login():
 @users.route("/logout")
 def logout():
     logout_user()
-    return redirect(url_for('home'))
+    return redirect(url_for('main.home'))
 
 
 @users.route("/account", methods=["GET", "POST"])
@@ -69,7 +67,7 @@ def account():
         current_user.email = form.email.data
         db.session.commit()
         flash("Account Information updated!", 'success')
-        return redirect(url_for('account'))
+        return redirect(url_for('users.account'))
 
     elif request.method == 'GET':
         form.username.data = current_user.username
@@ -102,7 +100,7 @@ def user_post(username):
 def reset_request():
     if current_user.is_authenticated:
         # flash("You already logedin", 'warning')
-        return redirect(url_for('home'))
+        return redirect(url_for('mian.home'))
 
     form = RequestResetForm()
     if form.validate_on_submit():
@@ -117,11 +115,11 @@ def reset_request():
 @users.route("/reset_password/<token>", methods=["GET", "POST"])
 def reset_token(token):
     if current_user.is_authenticated:
-        return redirect(url_for('home'))
+        return redirect(url_for('main.home'))
     user = User.verify_reset_token(token)
     if user is None:
         flash("That is a invalid or expired token", "warning")
-        return redirect(url_for('reset_request'))
+        return redirect(url_for('users.reset_request'))
     form = ResetPasswordForm()
 
     if form.validate_on_submit():
@@ -129,5 +127,5 @@ def reset_token(token):
         user.password = hashed_password
         db.session.commit()
         flash('Your password has been Updated! You can login', "success")
-        return redirect(url_for('login'))
+        return redirect(url_for('users.login'))
     return render_template("reset_token.html", title="Reset Password", form=form)
