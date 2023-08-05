@@ -6,7 +6,6 @@ from flask_login import LoginManager
 from flask_mail import Mail
 from flaskblog.config import Config
 
-
 # creating the extension
 db = SQLAlchemy()
 bcrypt = Bcrypt()
@@ -14,8 +13,8 @@ login_manager = LoginManager()
 login_manager.login_view = 'users.login'  # similar to url_for() function. Associated with login_required decorator
 login_manager.login_message_category = 'info'
 
-
 mail = Mail()
+
 
 # from flaskblog import routes
 
@@ -24,7 +23,7 @@ mail = Mail()
 # >>> app.app_context().push()
 # >>> db.create_all()
 
-def create_app(config_class = Config):
+def create_app(config_class=Config):
     app = Flask(__name__)
     app.config.from_object(Config)
     from flaskblog.users.routes import users
@@ -43,4 +42,3 @@ def create_app(config_class = Config):
     app.register_blueprint(errors)
 
     return app
-
